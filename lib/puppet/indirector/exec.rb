@@ -13,8 +13,9 @@ class Puppet::Indirector::Exec < Puppet::Indirector::Terminus
     # Make sure it's fully qualified.
     raise ArgumentError, "You must set the exec parameter to a fully qualified command" unless Puppet::Util.absolute_path?(external_command[0])
 
-    # Add our name to it.
-    external_command << name
+    # Finalize the command, aids in subclassing
+    external_command = command_args(request,command)
+
     begin
       output = execute(external_command, :failonfail => true, :combine => false)
     rescue Puppet::ExecutionFailure => detail
@@ -35,4 +36,11 @@ class Puppet::Indirector::Exec < Puppet::Indirector::Terminus
   def execute(command, arguments)
     Puppet::Util::Execution.execute(command,arguments)
   end
+
+  def command_args(request,command)
+    # Add our name (FQDN) to it
+    command << request.key
+    return command
+  end
+
 end
